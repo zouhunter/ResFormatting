@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
     public class AssetAuditorNewRuleWindow : EditorWindow
     {

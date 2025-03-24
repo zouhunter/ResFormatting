@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
 
 	[Serializable]

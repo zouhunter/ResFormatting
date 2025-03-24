@@ -3,11 +3,16 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
     [FilePath("ProjectSettings/ResFormatSetting.asset", FilePathAttribute.Location.ProjectFolder)]
     public class ResFormatSetting : UnityEditor.ScriptableSingleton<ResFormatSetting>
     {
+         public  string proxyAssetDir;
+        public  string proxyTexturePath;
+        public  string proxyModelPath;
+        public  string proxyAudioPath;
+
         public List<AssetAuditor.AssetRule> assetRules = new List<AssetAuditor.AssetRule>();
         public void AddRule(AssetAuditor.AssetRule rule)
         {

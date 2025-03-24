@@ -7,7 +7,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
 
     public delegate void OnGatherAssetRulesComplete();

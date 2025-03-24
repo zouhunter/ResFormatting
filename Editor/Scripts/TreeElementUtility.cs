@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEditor;
 
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
 
 	// TreeElementUtility and TreeElement are useful helper classes for backend tree data structures.

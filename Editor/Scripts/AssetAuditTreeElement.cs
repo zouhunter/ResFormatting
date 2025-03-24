@@ -1,6 +1,6 @@
 using System;
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
 	[Serializable]
 	public class AssetAuditTreeElement : TreeElement

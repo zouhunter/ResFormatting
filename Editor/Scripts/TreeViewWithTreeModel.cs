@@ -6,7 +6,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
 
 	internal class TreeViewItem<T> : TreeViewItem where T : TreeElement

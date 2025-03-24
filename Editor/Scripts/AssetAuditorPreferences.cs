@@ -4,32 +4,37 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
     public class AssetAuditorPreferences
     {
         private static string proxyAssetDir;
-        private const string proxyAssetDirKey = "ProxyAssetDirectory";
         private const string proxyAssetDirDefault = "Assets/Editor/ResFormat";
 
         private static string proxyTexturePath;
-        private const string proxyTexturePathKey = "ProxyTexturePath";
         private const string proxyTexturePathDefault = "e762cc062d5c5411a9264437e5c9c09e";
 
         private static string proxyModelPath;
-        private const string proxyModelPathKey = "ProxyModelPath";
         private const string proxyModelPathDefault = "6ca747ad81483413fa1665afa5a9c79a";
 
         private static string proxyAudioPath;
-        private const string proxyAudioPathKey = "ProxyAudioPath";
         private const string proxyAudioPathDefault = "d13848c7015ad4078abfd3076f74c106";
 
         static AssetAuditorPreferences()
         {
-            proxyAssetDir = EditorPrefs.GetString(proxyAssetDirKey, proxyAssetDirDefault);
-            proxyTexturePath = EditorPrefs.GetString(proxyTexturePathKey, AssetDatabase.GUIDToAssetPath(proxyTexturePathDefault));
-            proxyModelPath = EditorPrefs.GetString(proxyModelPathKey, AssetDatabase.GUIDToAssetPath(proxyModelPathDefault));
-            proxyAudioPath = EditorPrefs.GetString(proxyAudioPathKey, AssetDatabase.GUIDToAssetPath(proxyAudioPathDefault));
+            proxyAssetDir = ResFormatSetting.instance. proxyAssetDir;
+            proxyTexturePath = ResFormatSetting.instance. proxyTexturePath;
+            proxyModelPath =ResFormatSetting.instance. proxyModelPath;
+            proxyAudioPath =ResFormatSetting.instance. proxyAudioPath;
+
+            if(string.IsNullOrEmpty(proxyAssetDir)  )
+                proxyAssetDir = proxyAssetDirDefault;
+            if(string.IsNullOrEmpty(proxyTexturePath))
+                proxyTexturePath = AssetDatabase.GUIDToAssetPath(proxyTexturePathDefault);
+            if(string.IsNullOrEmpty(proxyModelPath))
+                proxyModelPath = AssetDatabase.GUIDToAssetPath(proxyModelPathDefault);
+            if(string.IsNullOrEmpty(proxyAudioPath))
+                proxyAudioPath = AssetDatabase.GUIDToAssetPath(proxyAudioPathDefault);
         }
 
         public static string ProxyAssetsDirectory
@@ -70,6 +75,7 @@ namespace Weli.ResFormat
             var provider = new SettingsProvider($"Project/{typeof(AssetAuditorPreferences).Namespace.Split(".")[0]}/Res Format Settings", SettingsScope.Project);
             provider.label = "Res Formatting";
             provider.guiHandler = PreferencesGUI;
+            provider.deactivateHandler = () => ResFormatSetting.Save();
             provider.keywords = new string[] { "res", "format", "setting" };
             return provider;
         }
@@ -79,8 +85,6 @@ namespace Weli.ResFormat
             EditorGUILayout.LabelField("Proxy Assets Directory", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-
-            proxyAssetDir = "Assets/" + EditorGUILayout.TextField(proxyAssetDir.Remove(0, 7));
 
             if (GUILayout.Button("Browse", EditorStyles.miniButton))
             {
@@ -92,8 +96,8 @@ namespace Weli.ResFormat
                 }
                 else if (path.Length > 0)
                 {
-                    proxyAssetDir = path.Substring(Application.dataPath.Length - 6);
-                    EditorPrefs.SetString(proxyAssetDirKey, proxyAssetDir);
+                    proxyAssetDir =System.IO.Path.GetRelativePath(System.Environment.CurrentDirectory, path);
+                    ResFormatSetting.instance.proxyAssetDir = proxyAssetDir;
                 }
             }
 
@@ -117,8 +121,6 @@ namespace Weli.ResFormat
             EditorGUILayout.LabelField("Texture");
 
             EditorGUILayout.BeginHorizontal();
-            proxyTexturePath = "Assets/" + EditorGUILayout.TextField(proxyTexturePath.Remove(0, 7));
-
             if (GUILayout.Button("Browse", EditorStyles.miniButton))
             {
                 string path = EditorUtility.OpenFilePanel("Select Proxy Texture", proxyTexturePath, "jpg,png,bmp,tga");
@@ -131,8 +133,8 @@ namespace Weli.ResFormat
                     }
                     else
                     {
-                        proxyTexturePath = path.Substring(Application.dataPath.Length - 6);
-                        EditorPrefs.SetString(proxyTexturePathKey, proxyTexturePath);
+                       proxyTexturePath =System.IO.Path.GetRelativePath(System.Environment.CurrentDirectory, path);
+                       ResFormatSetting.instance.proxyAssetDir = proxyTexturePath;
                     }
                 }
             }
@@ -147,7 +149,6 @@ namespace Weli.ResFormat
             EditorGUILayout.LabelField("Model");
 
             EditorGUILayout.BeginHorizontal();
-            proxyModelPath = "Assets/" + EditorGUILayout.TextField(proxyModelPath.Remove(0, 7));
             if (GUILayout.Button("Browse", EditorStyles.miniButton))
             {
                 string path = EditorUtility.OpenFilePanel("Select Proxy Model", proxyModelPath, "fbx,obj,3ds");
@@ -160,8 +161,8 @@ namespace Weli.ResFormat
                     }
                     else
                     {
-                        proxyModelPath = path.Substring(Application.dataPath.Length - 6);
-                        EditorPrefs.SetString(proxyModelPathKey, proxyModelPath);
+                        proxyModelPath = System.IO.Path.GetRelativePath(System.Environment.CurrentDirectory, path);
+                       ResFormatSetting.instance.proxyModelPath = proxyModelPath;
                     }
                 }
             }
@@ -176,7 +177,6 @@ namespace Weli.ResFormat
             EditorGUILayout.LabelField("Audio");
 
             EditorGUILayout.BeginHorizontal();
-            proxyAudioPath = "Assets/" + EditorGUILayout.TextField(proxyAudioPath.Remove(0, 7));
             if (GUILayout.Button("Browse", EditorStyles.miniButton))
             {
                 string path = EditorUtility.OpenFilePanel("Select Proxy Audio", proxyAudioPath, "wav,mp3,ogg");
@@ -189,8 +189,8 @@ namespace Weli.ResFormat
                     }
                     else
                     {
-                        proxyAudioPath = path.Substring(Application.dataPath.Length - 6);
-                        EditorPrefs.SetString(proxyAudioPathKey, proxyAudioPath);
+                        proxyAudioPath = System.IO.Path.GetRelativePath(System.Environment.CurrentDirectory, path);
+                        ResFormatSetting.instance.proxyAudioPath = proxyAudioPath;
                     }
                 }
             }

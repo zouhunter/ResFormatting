@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
 	public class AssetAuditorUtilities
 	{

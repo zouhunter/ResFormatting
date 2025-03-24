@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Weli.ResFormat
+namespace UFrame.ResFormat
 {
     public delegate void OnQueueComplete();
     
@@ -503,14 +502,15 @@ namespace Weli.ResFormat
                 yield return progress / list.Count;
             }
         }
-        public static void FixRule(string affectedAssetPath, AssetType assetType, AssetRule assetRule)
+        public static bool FixRule(string affectedAssetPath, AssetType assetType, AssetRule assetRule)
         {
             if (string.IsNullOrEmpty(assetRule.AssetGuid))
-                return;
+                return false;
 
             string ruleAssetPath = AssetDatabase.GUIDToAssetPath(assetRule.AssetGuid);
             if(affectedAssetPath == ruleAssetPath)
-                return;
+                return false;
+            bool success = true;
             switch (assetType)
             {
                 case AssetType.Texture:
@@ -521,15 +521,13 @@ namespace Weli.ResFormat
                     {
                         SerializedObject ruleImporterSO = new SerializedObject(ruleTexImporter);
                         SerializedObject affectedAssetImporterSO = new SerializedObject(affectedAssetTexImporter);
-                        CopySelectiveProperties(affectedAssetImporterSO, ruleImporterSO, assetRule);
+                        success =  CopySelectiveProperties(affectedAssetImporterSO, ruleImporterSO, assetRule);
                     }
                     else
                     {
                         EditorUtility.CopySerialized(ruleTexImporter, affectedAssetTexImporter);
                     }
-                    affectedAssetTexImporter.userData = "";
                     affectedAssetTexImporter.SaveAndReimport();
-
                     break;
 
                 case AssetType.Model:
@@ -541,13 +539,12 @@ namespace Weli.ResFormat
                     {
                         SerializedObject ruleImporterSO = new SerializedObject(ruleModelImporter);
                         SerializedObject affectedAssetImporterSO = new SerializedObject(affectedAssetModelImporter);
-                        CopySelectiveProperties(affectedAssetImporterSO, ruleImporterSO, assetRule);
+                        success =  CopySelectiveProperties(affectedAssetImporterSO, ruleImporterSO, assetRule);
                     }
                     else
                     {
                         EditorUtility.CopySerialized(ruleModelImporter, affectedAssetModelImporter);
                     }
-                    affectedAssetModelImporter.userData = "";
                     affectedAssetModelImporter.SaveAndReimport();
                     break;
 
@@ -560,43 +557,59 @@ namespace Weli.ResFormat
                     {
                         SerializedObject ruleImporterSO = new SerializedObject(ruleAudioImporter);
                         SerializedObject affectedAssetImporterSO = new SerializedObject(affectedAssetAudioImporter);
-                        CopySelectiveProperties(affectedAssetImporterSO, ruleImporterSO, assetRule);
+                        success =  CopySelectiveProperties(affectedAssetImporterSO, ruleImporterSO, assetRule);
                     }
                     else
                     {
                         EditorUtility.CopySerialized(ruleAudioImporter, affectedAssetAudioImporter);
                     }
-                    affectedAssetAudioImporter.userData = "";
                     affectedAssetAudioImporter.SaveAndReimport();
                     break;
                 case AssetType.Folder:
+                    success = false;
                     break;
 
                 default:
+                    success = false;
                     throw new ArgumentOutOfRangeException();
             }
+            return success;
         }
         public static void FixRule(AssetAuditTreeElement data , AssetRule assetRule)
         {
                FixRule(data.projectPath, data.assetType, assetRule);
                data.conforms = true;
         }
-        
-        
-        private static void CopySelectiveProperties(SerializedObject affectedAssetImporterSO, SerializedObject ruleImporterSO, AssetRule assetRule)
+
+
+        private static bool CopySelectiveProperties(SerializedObject affectedAssetImporterSO, SerializedObject ruleImporterSO, AssetRule assetRule)
         {
+            bool succcess = false;
+            affectedAssetImporterSO.Update();
             foreach (string property in assetRule.SelectiveProperties)
             {
                 string realname = GetPropertyNameFromDisplayName(affectedAssetImporterSO, property);
 
                 SerializedProperty assetRuleSP = ruleImporterSO.FindProperty(realname);
+                if(SerializedProperty.DataEquals(assetRuleSP,affectedAssetImporterSO.FindProperty(realname)))
+                {
+                    continue;
+                }
 
+                succcess = true;
+                Debug.Log(" apply modified = " + realname);
                 affectedAssetImporterSO.CopyFromSerializedProperty(assetRuleSP);
-
                 bool applyModifiedProperties = affectedAssetImporterSO.ApplyModifiedProperties();
-
-                if (!applyModifiedProperties) Debug.Log(" copy failed ");
+                if (!applyModifiedProperties)
+                {
+                    Debug.Log(" copy failed ");
+                }
             }
+            if(succcess)
+            {
+                affectedAssetImporterSO.ApplyModifiedProperties();
+            }
+            return succcess;
         }
 
         
@@ -693,7 +706,10 @@ namespace Weli.ResFormat
             string textureProxy = AssetAuditorPreferences.ProxyTexturePath;
             string ext = textureProxy.Substring(textureProxy.LastIndexOf('.'));
             string newAssetPath = AssetAuditorPreferences.ProxyAssetsDirectory + Path.DirectorySeparatorChar + newRule.RuleName + ext;
-            if (!System.IO.File.Exists(newAssetPath) && !AssetDatabase.CopyAsset(textureProxy, newAssetPath))
+            if (System.IO.File.Exists(newAssetPath))
+                return;
+                
+            if (!AssetDatabase.CopyAsset(textureProxy, newAssetPath))
             {
                 Debug.LogWarning("Failed to copy proxy asset from " + textureProxy);
                 return;
