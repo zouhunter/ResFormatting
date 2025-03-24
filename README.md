@@ -12,10 +12,3 @@
 ### 快速使用
 1. 配置新规则:Window/ResFormatting/New FormatRule
 2. 可视化查看影响的资源:Window/ResFormatting/FormatView
-
-### 已对接系统
-
-| 平台名称    | 描述      | 版本   |
-| ---------- | --------- | -------- |
-| CHORD   | Chord游戏 |  |
-| MATEAI   | MateAI应用 |  |
